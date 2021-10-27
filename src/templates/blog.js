@@ -1,7 +1,7 @@
 import React from 'react';
 import Layout from '../components/Layout';
+import { renderRichText } from "gatsby-source-contentful/rich-text"
 import { Helmet } from 'react-helmet';
-import { documentToReactComponents } from "@contentful/rich-text-react-renderer"
 import { graphql } from 'gatsby';
 
 export const query = graphql`
@@ -9,34 +9,52 @@ query ($slug: String!) {
     contentfulBlogPost(slug: { eq: $slug }) {
       title
       slug
-      date(formatString:"MMM Do, YYYY")
       content {
-        json
+        raw
+        references {
+          ... on ContentfulAsset {
+            title
+            contentful_id
+            __typename
+            fluid(maxWidth:1200){
+              src
+              srcSet
+            }
+          }
+          ... on ContentfulAsset {
+            contentful_id
+            __typename
+            gatsbyImageData
+          }
+        }
       }
     }
   }
 `
-
-console.log(query);
+const options = {
+  renderNode: {
+    "embedded-asset-block": node => {
+      const { fluid, title } = node.data.target
+      if (!fluid) {
+        // asset is not an image
+        return null
+      }
+      return (
+        <img src={fluid.src} alt={title} />
+      )
+    },
+  },
+}
 
 
 const BlogTemplate = (props) => {
-  const options = {
-    renderNode: {
-      "embedded-asset-block": (node) => {
-        const alt = node.data.target.fields.title['en-US']
-        const url = node.data.target.fields.file['en-US'].url
-        return <img src={url} alt={alt} />
-      }
-    }
-  }
+  const { content } = props.data.contentfulBlogPost
 
   return (
     <Layout>
       <Helmet title={`${props.data.contentfulBlogPost.title} | Aarav Khokhar`} />
       <h1>{props.data.contentfulBlogPost.title}</h1>
-      <p>{props.data.contentfulBlogPost.date}</p>
-      {documentToReactComponents(props.data.contentfulBlogPost.content.json, options)}
+      {content && renderRichText(content, options)}
     </Layout>
   )
 }

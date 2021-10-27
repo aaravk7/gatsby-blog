@@ -28,7 +28,7 @@ const Blog = () => {
       <ol className={blogList}>
         {data.allContentfulBlogPost.edges.map((edge) => {
           return (
-            <Link to={`/blog/${edge.node.slug}`}>
+            <Link key={edge.node.slug} to={`/blog/${edge.node.slug}`}>
               <li>
                 <h2>{edge.node.title}</h2>
                 <p>{edge.node.date}</p>
