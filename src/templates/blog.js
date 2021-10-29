@@ -16,7 +16,7 @@ query ($slug: String!) {
             title
             contentful_id
             __typename
-            fluid(maxWidth:1200){
+            fluid(quality:100 , maxWidth:1000){
               src
               srcSet
             }
